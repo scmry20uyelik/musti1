@@ -1,0 +1,13 @@
+# Environment variables
+.env
+
+# Supabase local development
+.supabase/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
