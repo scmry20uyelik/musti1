@@ -9,7 +9,7 @@ if (GEMINI_API_KEY && GEMINI_API_KEY.startsWith('sb_')) {
   console.warn('Warning: GEMINI_API_KEY looks like a Supabase secret, make sure you set the correct Gemini API key in secrets')
 }
 
-async function callGemini(prompt: string) {
+export async function callGemini(prompt: string) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -74,6 +74,63 @@ export function parseQuizFromContent(content: string) {
   }
 }
 
+// Validate quiz object and attempt to fix missing vocabulary/article/examples/curriculum
+export async function ensureQuizCompleteness(quiz: any, level: string, topic: string) {
+  const validArticles = ['der', 'die', 'das']
+
+  const isVocabularyValid = (v: any) => {
+    if (!v || typeof v !== 'object') return false
+    return !!v.word && !!v.article && validArticles.includes((v.article || '').toString().toLowerCase()) && !!v.translation && !!v.example_present && !!v.example_past
+  }
+
+  const hasGoodVocab = Array.isArray(quiz.vocabulary) && quiz.vocabulary.length > 0 && quiz.vocabulary.every(isVocabularyValid)
+  const hasCurriculum = Array.isArray(quiz.curriculum) && quiz.curriculum.length >= 3 && quiz.curriculum.every((c: any) => c.lesson && Array.isArray(c.objectives) && c.objectives.length >= 1)
+
+  if (hasGoodVocab && hasCurriculum) return quiz
+
+  // Ask Gemini to return a corrected full JSON quiz object with required fields
+  const fixPrompt = `You are an expert German teacher. Fix the following JSON quiz so that each item in 'vocabulary' has: 'word', 'article' (one of der/die/das), 'translation' (Turkish), 'example_present', and 'example_past'. Ensure 'curriculum' has 3 lessons with 'lesson' and 3 short 'objectives' each. Return ONLY a single valid JSON object (no extra text):
+
+${JSON.stringify(quiz)}`
+
+  try {
+    const resp = await callGemini(fixPrompt)
+    const content = resp?.candidates?.[0]?.content?.[0]?.text || resp?.candidates?.[0]?.output || JSON.stringify(resp)
+    const parsed = parseQuizFromContent(content)
+    if (parsed) {
+      const parsedHasGoodVocab = Array.isArray(parsed.vocabulary) && parsed.vocabulary.length > 0 && parsed.vocabulary.every(isVocabularyValid)
+      const parsedHasCurriculum = Array.isArray(parsed.curriculum) && parsed.curriculum.length >= 3
+      if (parsedHasGoodVocab && parsedHasCurriculum) return parsed
+    }
+  } catch (e) {
+    // ignore and fallback to best-effort
+  }
+
+  // Best-effort filling for missing fields
+  const fallbackQuiz = JSON.parse(JSON.stringify(quiz))
+  fallbackQuiz.vocabulary = fallbackQuiz.vocabulary || []
+  if (!Array.isArray(fallbackQuiz.vocabulary)) fallbackQuiz.vocabulary = []
+  if (fallbackQuiz.vocabulary.length === 0) {
+    fallbackQuiz.vocabulary.push({ word: 'Haus', article: 'das', translation: 'ev', example_present: 'Das Haus ist groß.', example_past: 'Das Haus war groß.' })
+  } else {
+    fallbackQuiz.vocabulary = fallbackQuiz.vocabulary.map((v: any) => ({
+      word: v.word || '---',
+      article: validArticles.includes((v.article || '').toString().toLowerCase()) ? v.article : 'das',
+      translation: v.translation || '',
+      example_present: v.example_present || `Das ${v.word || 'Wort'} ist ... .`,
+      example_past: v.example_past || `Das ${v.word || 'Wort'} war ... .`,
+    }))
+  }
+
+  fallbackQuiz.curriculum = fallbackQuiz.curriculum || []
+  if (!Array.isArray(fallbackQuiz.curriculum)) fallbackQuiz.curriculum = []
+  while (fallbackQuiz.curriculum.length < 3) {
+    fallbackQuiz.curriculum.push({ lesson: `${topic} - Temel`, objectives: ['Artikel kullanımı', 'Örnek cümle', 'Kelime tekrarı'] })
+  }
+
+  return fallbackQuiz
+}
+
 
 serve(async (req) => {
   try {
@@ -136,6 +193,9 @@ serve(async (req) => {
         ],
         meta: { generatedBy: 'gemini-2.5-flash', note: 'fallback because parse failed or truncated' }
       }
+    } else {
+      // quiz parsed - ensure completeness (vocabulary & curriculum). This may call Gemini again to fix missing fields.
+      quiz = await ensureQuizCompleteness(quiz, level, topic)
     }
 
     return new Response(JSON.stringify(quiz), { status: 200, headers: { 'content-type': 'application/json' } })
