@@ -303,33 +303,42 @@ class CustomDrawer extends ConsumerWidget {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Test button
-                IconButton(
-                  icon: const Icon(Icons.school_outlined, size: 20),
-                  color: Colors.white.withValues(alpha: 0.7),
-                  tooltip: 'Test',
-                  onPressed: () {
-                    debugPrint(
-                      '🔔 Drawer Test pressed: level=$level topic=$topic',
-                    );
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            QuizScreen(levelName: level, topicName: topic),
-                      ),
-                    );
-                  },
-                ),
-                if (isSelected)
-                  const Icon(
-                    Icons.check_circle,
-                    color: Color(0xFFD4AF37),
-                    size: 20,
+            trailing: SizedBox(
+              width: 56,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Test button
+                  IconButton(
+                    icon: const Icon(Icons.school_outlined, size: 20),
+                    color: Colors.white.withValues(alpha: 0.7),
+                    tooltip: 'Test',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      debugPrint(
+                        '🔔 Drawer Test pressed: level=$level topic=$topic',
+                      );
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              QuizScreen(levelName: level, topicName: topic),
+                        ),
+                      );
+                    },
                   ),
-              ],
+                  if (isSelected)
+                    const SizedBox(
+                      width: 20,
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Color(0xFFD4AF37),
+                        size: 20,
+                      ),
+                    ),
+                ],
+              ),
             ),
             onTap: () {
               ref.read(selectedTopicProvider.notifier).state = SelectedTopic(

@@ -35,9 +35,9 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             appBar: AppBar(title: const Text('Home')),
-            // Place the drawer directly in the body with wide constraints to avoid Drawer width clipping in tests
-            body: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
+            // Place the drawer directly in the body with wide width to avoid Drawer width clipping in tests
+            body: SizedBox(
+              width: 800,
               child: const CustomDrawer(),
             ),
           ),
@@ -47,12 +47,7 @@ void main() {
     ));
 
     // Expand the first level to reveal the topic/test button
-    await tester.tap(find.text('A1')); // 'A1' is the header text for the level
-    await tester.pumpAndSettle();
-
-    // Open drawer
-    final ScaffoldState state = tester.firstState(find.byType(Scaffold));
-    state.openDrawer();
+    await tester.tap(find.widgetWithText(ExpansionTile, 'A1').first);
     await tester.pumpAndSettle();
 
     // Find a topic's Test icon (first occurrence) and tap it
