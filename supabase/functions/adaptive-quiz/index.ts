@@ -44,12 +44,7 @@ export function buildPrompt(level: string, topic: string) {
     '}'
 
   // Simpler prompt format to avoid embedding a multi-line JSON sample that caused a parser error in CI
-  const prompt =
-    'You are an expert German teacher. Create a concise adaptive quiz for German learners focused on the theme: ' +
-    topic +
-    ' and level: ' +
-    level +
-    '. Output ONLY a single VALID JSON object (no code fences, no commentary, no extra text). The object must contain: quizId, level, topic, questions (1-3), vocabulary (each with word, article (der/die/das), translation (Turkish), example_present, example_past), curriculum (3 lessons with lesson and objectives), and meta.generatedBy. Keep examples short and use present and past tenses for example sentences. Do not add any extra commentary or markdown; reply with ONLY the JSON.'
+  const prompt = `You are an expert German teacher. Create a concise adaptive quiz for German learners focused on the theme: ${topic} and level: ${level}. Output ONLY a single VALID JSON object (no code fences, no commentary, no extra text). The object must contain: quizId, level, topic, questions (1-3), vocabulary (each with word, article (der/die/das), translation (Turkish), example_present, example_past), curriculum (3 lessons with lesson and objectives), and meta.generatedBy. Keep examples short and use present and past tenses for example sentences. Do not add any extra commentary or markdown; reply with ONLY the JSON.`
 
   return prompt
 }
