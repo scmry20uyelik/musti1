@@ -49,8 +49,8 @@ Output ONLY a single VALID JSON object (no code fences, no commentary, no extra 
 
 Requirements:
 - Provide 1–3 focused questions appropriate to the level and theme. Mark the correct option with "correct":true.
-- Include a `vocabulary` array with each item containing: German `word`, correct `article` (der/die/das), Turkish `translation`, an `example_present` sentence in German, and an `example_past` sentence in German (use Präteritum or Perfekt; either is acceptable but be consistent).
-- Create a short `curriculum` array with 3 lessons, each lesson having `lesson` and `objectives` (3 concise objectives).
+- Include a 'vocabulary' array with each item containing: German 'word', correct 'article' (der/die/das), Turkish 'translation', an 'example_present' sentence in German, and an 'example_past' sentence in German (use Präteritum or Perfekt; either is acceptable but be consistent).
+- Create a short 'curriculum' array with 3 lessons, each lesson having 'lesson' and 'objectives' (3 concise objectives).
 - Keep text short and simple; options should be single words or short phrases when possible.
 - Do not include any explanatory text outside the JSON. If you must include additional text, ensure the final line of the response contains ONLY the JSON object.`
 }
