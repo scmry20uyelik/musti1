@@ -64,3 +64,17 @@ Deno.test('ensureQuizCompleteness fixes missing vocabulary and curriculum fields
   if (!result || !Array.isArray(result.vocabulary) || !result.vocabulary[0].article) throw new Error('Vocabulary not fixed')
   if (!Array.isArray(result.curriculum) || result.curriculum.length < 3) throw new Error('Curriculum not fixed')
 })
+
+// Additional sanity tests to guard against CI parse regressions
+Deno.test('buildPrompt returns non-empty string and contains topic/level and no backticks', () => {
+  const p = buildPrompt('A1.2', 'Familie')
+  assertStringIncludes(p, 'Familie')
+  assertStringIncludes(p, 'A1.2')
+  if (p.includes('`')) throw new Error('Prompt contains backtick')
+  if (p.trim().length === 0) throw new Error('Prompt empty')
+})
+
+Deno.test('buildPrompt includes the word vocabulary (guard for earlier parser issue)', () => {
+  const p = buildPrompt('A2', 'Reisen')
+  assertStringIncludes(p, 'vocabulary')
+})
