@@ -20,7 +20,10 @@ void main() {
     'getAdaptiveQuiz returns a valid quiz structure or auth error',
     () async {
       try {
-        final quiz = await AiApiService.instance.getAdaptiveQuiz('Genel', 'A1.1');
+        final quiz = await AiApiService.instance.getAdaptiveQuiz(
+          'Genel',
+          'A1.1',
+        );
         print('QUIZ RESPONSE: $quiz');
 
         expect(quiz.containsKey('question'), isTrue);
@@ -29,7 +32,10 @@ void main() {
       } catch (e) {
         // In testing environment the function may require server secrets and return 401/auth errors.
         final msg = e.toString();
-        final ok = msg.contains('Oturum') || msg.contains('Unauthorized') || msg.contains('Quiz yüklenemedi');
+        final ok =
+            msg.contains('Oturum') ||
+            msg.contains('Unauthorized') ||
+            msg.contains('Quiz yüklenemedi');
         expect(ok, isTrue);
       }
     },

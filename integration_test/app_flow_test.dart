@@ -149,7 +149,10 @@ void main() {
       // Assert quiz screen opened (adaptive or vocabulary)
       final adaptive = find.text('Quiz Zamanı');
       final vocab = find.text('Kelime Quiz');
-      expect(adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty, isTrue);
+      expect(
+        adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty,
+        isTrue,
+      );
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
@@ -228,13 +231,22 @@ void main() {
         for (final lt in allListTiles.evaluate()) {
           final ltWidget = lt.widget as ListTile;
           final tileFinder = find.byWidget(ltWidget);
-          if (find.descendant(of: tileFinder, matching: find.text(topicTitle)).evaluate().isNotEmpty) {
+          if (find
+              .descendant(of: tileFinder, matching: find.text(topicTitle))
+              .evaluate()
+              .isNotEmpty) {
             topicTile = tileFinder;
             break;
           }
           final baseTitle = topicTitle.split('(').first.trim();
           if (baseTitle.isNotEmpty &&
-              find.descendant(of: tileFinder, matching: find.textContaining(baseTitle)).evaluate().isNotEmpty) {
+              find
+                  .descendant(
+                    of: tileFinder,
+                    matching: find.textContaining(baseTitle),
+                  )
+                  .evaluate()
+                  .isNotEmpty) {
             topicTile = tileFinder;
             break;
           }
@@ -258,7 +270,13 @@ void main() {
             for (final lt in allListTiles.evaluate()) {
               final ltWidget = lt.widget as ListTile;
               final tileFinder = find.byWidget(ltWidget);
-              if (find.descendant(of: tileFinder, matching: find.textContaining(key)).evaluate().isNotEmpty) {
+              if (find
+                  .descendant(
+                    of: tileFinder,
+                    matching: find.textContaining(key),
+                  )
+                  .evaluate()
+                  .isNotEmpty) {
                 topicTile = tileFinder;
                 break;
               }
@@ -300,9 +318,12 @@ void main() {
           for (final iconEl in allIcons.evaluate()) {
             final iconFinder = find.byWidget(iconEl.widget);
             final renderBox = iconEl.renderObject as RenderBox;
-            final iconCenter = renderBox.localToGlobal(renderBox.size.center(Offset.zero));
+            final iconCenter = renderBox.localToGlobal(
+              renderBox.size.center(Offset.zero),
+            );
             // Check vertical overlap and prefer icons to the right side of the tile
-            if (iconCenter.dy >= tileRect.top - 2 && iconCenter.dy <= tileRect.bottom + 2) {
+            if (iconCenter.dy >= tileRect.top - 2 &&
+                iconCenter.dy <= tileRect.bottom + 2) {
               if (iconCenter.dx >= tileRect.right - 1) {
                 schoolButton = iconFinder;
                 foundIcon = true;
@@ -346,7 +367,9 @@ void main() {
         }
 
         final rbTarget = chosenEl.renderObject as RenderBox;
-        final schoolCenter = rbTarget.localToGlobal(rbTarget.size.center(Offset.zero));
+        final schoolCenter = rbTarget.localToGlobal(
+          rbTarget.size.center(Offset.zero),
+        );
 
         // First try to directly invoke the IconButton's onPressed if available
         bool invoked = false;
@@ -377,10 +400,13 @@ void main() {
         // Assert quiz screen opened (adaptive or vocabulary)
         final adaptive = find.text('Quiz Zamanı');
         final vocab = find.text('Kelime Quiz');
-        bool opened = adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty;
+        bool opened =
+            adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty;
         if (!opened) {
           // Retry: tap the topic tile (in case icon didn't trigger navigation) and retry tapping the quiz button
-          print('Retrying: level=$level topic=$topicTitle, schoolButtonCount=${schoolButton.evaluate().length}');
+          print(
+            'Retrying: level=$level topic=$topicTitle, schoolButtonCount=${schoolButton.evaluate().length}',
+          );
           final tileCenter = tester.getCenter(topicTileFinder);
           await tester.tapAt(tileCenter);
           await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -409,14 +435,17 @@ void main() {
             await tester.pumpAndSettle(const Duration(seconds: 2));
           }
 
-          opened = adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty;
+          opened =
+              adaptive.evaluate().isNotEmpty || vocab.evaluate().isNotEmpty;
         }
 
         if (!opened) {
           // Provide debug info and fail with context
           final topicCount = topicTile.evaluate().length;
           final sbCount = schoolButton.evaluate().length;
-          print('ERROR: Could not open quiz for level=$level topic=$topicTitle; topicMatches=$topicCount, schoolButtonMatches=$sbCount');
+          print(
+            'ERROR: Could not open quiz for level=$level topic=$topicTitle; topicMatches=$topicCount, schoolButtonMatches=$sbCount',
+          );
         }
         expect(opened, isTrue);
 
@@ -435,4 +464,3 @@ void main() {
     timeout: const Timeout(Duration(minutes: 4)),
   );
 }
-

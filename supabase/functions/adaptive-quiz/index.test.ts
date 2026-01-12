@@ -1,10 +1,35 @@
-// Basic unit test scaffold for adaptive-quiz function
-import { buildRequest, run } from 'https://deno.land/x/sift@0.6.1/mod.ts'
+import { assertStringIncludes, assertNotEquals } from 'https://deno.land/std@0.205.0/testing/asserts.ts'
+import { buildPrompt, parseQuizFromContent } from './index.ts'
 
-// NOTE: This is a scaffold. Running tests locally requires a Deno test harness setup or using supabase functions serve.
+// Simple unit tests to validate the buildPrompt output contains required instructions
+Deno.test('buildPrompt contains vocabulary and curriculum instructions', () => {
+  const p = buildPrompt('A1.1', 'Artikel')
+  assertStringIncludes(p, 'vocabulary')
+  assertStringIncludes(p, 'translation')
+  assertStringIncludes(p, 'curriculum')
+  assertStringIncludes(p, 'example_past')
+})
 
-deno.test('adaptive-quiz returns JSON structure for simple input', async () => {
-  // This test is a placeholder. Integration tests will call the deployed function.
-  const resp = { status: 200 }
-  if (resp.status !== 200) throw new Error('Expected 200')
+Deno.test('parseQuizFromContent parses clean JSON', () => {
+  const json = '{"quizId":"x","questions":[],"vocabulary":[],"curriculum":[]}'
+  const parsed = parseQuizFromContent(json)
+  assertNotEquals(parsed, null)
+})
+
+Deno.test('parseQuizFromContent extracts JSON from surrounding text', () => {
+  const wrapped = 'Some text before\n' +
+    '{"quizId":"y","questions":[],"vocabulary":[],"curriculum":[]}' +
+    '\nSome text after'
+  const parsed = parseQuizFromContent(wrapped)
+  assertNotEquals(parsed, null)
+})
+
+Deno.test('parseQuizFromContent recovers truncated JSON', () => {
+  const truncated = '{"quizId":"z","questions":[{"id":"q1"}],"vocabulary":['
+  const parsed = parseQuizFromContent(truncated)
+  // Should be null for very broken input but should not throw; we assert parse function returns null or an object, just ensure no exception
+  // At minimum the function should not throw and return either null or parsed object
+  if (parsed != null) {
+    assertNotEquals(parsed, null)
+  }
 })

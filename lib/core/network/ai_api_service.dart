@@ -144,7 +144,8 @@ class AiApiService {
     String level,
   ) async {
     try {
-      const url = 'https://gohrxehnreohljgsxlig.supabase.co/functions/v1/adaptive-quiz';
+      const url =
+          'https://gohrxehnreohljgsxlig.supabase.co/functions/v1/adaptive-quiz';
 
       // Retry with exponential backoff + jitter on transient failures (5xx/timeouts)
       http.Response? httpResponse;
@@ -152,7 +153,9 @@ class AiApiService {
       final rng = Random();
 
       for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-        debugPrint('🔁 adaptive-quiz attempt $attempt/$maxAttempts for level=$level topic=$topic');
+        debugPrint(
+          '🔁 adaptive-quiz attempt $attempt/$maxAttempts for level=$level topic=$topic',
+        );
         try {
           httpResponse = await http
               .post(
@@ -166,23 +169,31 @@ class AiApiService {
               .timeout(
                 const Duration(seconds: 30),
                 onTimeout: () {
-                  throw ApiException('Sunucu yanıt vermiyor. Lütfen tekrar deneyin.');
+                  throw ApiException(
+                    'Sunucu yanıt vermiyor. Lütfen tekrar deneyin.',
+                  );
                 },
               );
         } catch (e) {
           debugPrint('❌ adaptive-quiz attempt $attempt exception: $e');
           if (attempt == maxAttempts) {
-            debugPrint('⚠️ adaptive-quiz: max attempts reached after exception, returning fallback quiz');
+            debugPrint(
+              '⚠️ adaptive-quiz: max attempts reached after exception, returning fallback quiz',
+            );
             return {
               'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
               'options': ['A', 'B', 'C', 'D'],
               'correct_answer': 'A',
               'options_turkish': ['A', 'B', 'C', 'D'],
-              'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+              'question_turkish':
+                  'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
               'difficulty': 'medium',
+              'vocabulary': null,
+              'curriculum': null,
             };
           }
-          final backoffMs = (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
+          final backoffMs =
+              (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
           debugPrint('⏳ Backing off for ${backoffMs}ms before retry');
           await Future.delayed(Duration(milliseconds: backoffMs));
           continue;
@@ -194,19 +205,27 @@ class AiApiService {
 
         // If server error (5xx) then retry after backoff
         if (httpResponse.statusCode >= 500 && httpResponse.statusCode < 600) {
-          debugPrint('⚠️ Server error ${httpResponse.statusCode} - ${httpResponse.body}');
+          debugPrint(
+            '⚠️ Server error ${httpResponse.statusCode} - ${httpResponse.body}',
+          );
           if (attempt == maxAttempts) {
-            debugPrint('⚠️ adaptive-quiz: max attempts reached, returning fallback quiz');
+            debugPrint(
+              '⚠️ adaptive-quiz: max attempts reached, returning fallback quiz',
+            );
             return {
               'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
               'options': ['A', 'B', 'C', 'D'],
               'correct_answer': 'A',
               'options_turkish': ['A', 'B', 'C', 'D'],
-              'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+              'question_turkish':
+                  'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
               'difficulty': 'medium',
+              'vocabulary': null,
+              'curriculum': null,
             };
           }
-          final backoffMs = (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
+          final backoffMs =
+              (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
           debugPrint('⏳ Backing off for ${backoffMs}ms before retry');
           await Future.delayed(Duration(milliseconds: backoffMs));
           continue;
@@ -214,35 +233,49 @@ class AiApiService {
 
         // Non-retriable errors
         if (httpResponse.statusCode == 401) {
-          throw ApiException('Oturum süresi dolmuş. Lütfen yeniden giriş yapın.');
+          throw ApiException(
+            'Oturum süresi dolmuş. Lütfen yeniden giriş yapın.',
+          );
         }
 
-        throw ApiException('Sunucu hatası: ${httpResponse.statusCode} - ${httpResponse.body}');
+        throw ApiException(
+          'Sunucu hatası: ${httpResponse.statusCode} - ${httpResponse.body}',
+        );
       }
 
       if (httpResponse == null) {
-        debugPrint('⚠️ adaptive-quiz: httpResponse null — returning fallback quiz');
+        debugPrint(
+          '⚠️ adaptive-quiz: httpResponse null — returning fallback quiz',
+        );
         return {
           'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
           'options': ['A', 'B', 'C', 'D'],
           'correct_answer': 'A',
           'options_turkish': ['A', 'B', 'C', 'D'],
-          'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+          'question_turkish':
+              'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
           'difficulty': 'medium',
+          'vocabulary': null,
+          'curriculum': null,
         };
       }
 
       if (httpResponse.statusCode != 200) {
         // If server-side issue, return a safe fallback quiz instead of failing the whole flow
         if (httpResponse.statusCode >= 500 && httpResponse.statusCode < 600) {
-          debugPrint('⚠️ adaptive-quiz: server error ${httpResponse.statusCode} — returning fallback quiz');
+          debugPrint(
+            '⚠️ adaptive-quiz: server error ${httpResponse.statusCode} — returning fallback quiz',
+          );
           return {
             'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
             'options': ['A', 'B', 'C', 'D'],
             'correct_answer': 'A',
             'options_turkish': ['A', 'B', 'C', 'D'],
-            'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+            'question_turkish':
+                'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
             'difficulty': 'medium',
+            'vocabulary': null,
+            'curriculum': null,
           };
         }
 
@@ -263,7 +296,9 @@ class AiApiService {
         }
 
         if (options is! List) {
-          throw ApiException('Quiz seçenekleri beklenenden farklı bir formatta.');
+          throw ApiException(
+            'Quiz seçenekleri beklenenden farklı bir formatta.',
+          );
         }
 
         final normalizedOptions = options.map((e) => e.toString()).toList();
@@ -276,7 +311,9 @@ class AiApiService {
           'question': question.toString(),
           'options': normalizedOptions,
           'correct_answer': correct.toString(),
-          'options_turkish': (quizRaw['options_turkish'] as List?)?.map((e) => e.toString()).toList(),
+          'options_turkish': (quizRaw['options_turkish'] as List?)
+              ?.map((e) => e.toString())
+              .toList(),
           'question_turkish': quizRaw['question_turkish'] as String?,
           'difficulty': quizRaw['difficulty'] as String? ?? 'medium',
         };
@@ -301,13 +338,24 @@ class AiApiService {
             (m) => m['correct'] == true,
             orElse: () => <String, dynamic>{},
           );
-          if (correctOpt.isNotEmpty) correctAnswer = correctOpt['id']?.toString() ?? correctOpt['text']?.toString();
-          final normalizedOptions = opts.map((m) => m['id']?.toString() ?? m['text']?.toString() ?? '').toList();
+          if (correctOpt.isNotEmpty)
+            correctAnswer =
+                correctOpt['id']?.toString() ?? correctOpt['text']?.toString();
+          final normalizedOptions = opts
+              .map((m) => m['id']?.toString() ?? m['text']?.toString() ?? '')
+              .toList();
 
           if (correctAnswer == null && opts.isNotEmpty) {
             // fallback: if correct not marked, prefer first
             correctAnswer = normalizedOptions.first;
           }
+
+          final vocabulary = (data['vocabulary'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList();
+          final curriculum = (data['curriculum'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList();
 
           return {
             'question': qText.toString(),
@@ -316,6 +364,8 @@ class AiApiService {
             'options_turkish': null,
             'question_turkish': null,
             'difficulty': (first['difficulty']?.toString()) ?? 'medium',
+            'vocabulary': vocabulary,
+            'curriculum': curriculum,
           };
         }
 
@@ -325,6 +375,13 @@ class AiApiService {
           correctAnswer = first['correct']?.toString() ?? opts.first;
           if (!opts.contains(correctAnswer)) correctAnswer = opts.first;
 
+          final vocabulary = (data['vocabulary'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList();
+          final curriculum = (data['curriculum'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList();
+
           return {
             'question': qText.toString(),
             'options': opts,
@@ -332,6 +389,8 @@ class AiApiService {
             'options_turkish': null,
             'question_turkish': null,
             'difficulty': (first['difficulty']?.toString()) ?? 'medium',
+            'vocabulary': vocabulary,
+            'curriculum': curriculum,
           };
         }
 

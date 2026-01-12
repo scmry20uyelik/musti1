@@ -32,7 +32,9 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('➡️ QuizScreen opened for level=${widget.levelName}, topic=${widget.topicName}');
+    debugPrint(
+      '➡️ QuizScreen opened for level=${widget.levelName}, topic=${widget.topicName}',
+    );
     _loadQuiz();
   }
 
@@ -455,6 +457,124 @@ class _QuizScreenState extends State<QuizScreen> {
                             );
                           },
                         ),
+
+                        const SizedBox(height: 24),
+
+                        // Vocabulary (German word, article, Turkish translation, present/past examples)
+                        if (_currentQuiz!['vocabulary'] != null)
+                          Card(
+                            elevation: 1,
+                            color: theme.colorScheme.surfaceContainer,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Kelime Havuzu',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ...(_currentQuiz!['vocabulary'] as List)
+                                      .cast<Map<String, dynamic>>()
+                                      .map((v) {
+                                    final word = v['word'] ?? '';
+                                    final article = v['article'] ?? '';
+                                    final translation = v['translation'] ?? '';
+                                    final examplePresent = v['example_present'] ?? '';
+                                    final examplePast = v['example_past'] ?? '';
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                '$article $word',
+                                                style: theme.textTheme.bodyLarge
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                translation,
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          if (examplePresent != null && examplePresent.isNotEmpty)
+                                            Text('Present: $examplePresent'),
+                                          if (examplePast != null && examplePast.isNotEmpty)
+                                            Text('Past: $examplePast'),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        const SizedBox(height: 12),
+
+                        // Curriculum (lessons)
+                        if (_currentQuiz!['curriculum'] != null)
+                          Card(
+                            elevation: 1,
+                            color: theme.colorScheme.surfaceContainer,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Müfredat',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ...(_currentQuiz!['curriculum'] as List)
+                                      .cast<Map<String, dynamic>>()
+                                      .map((c) {
+                                    final lesson = c['lesson'] ?? '';
+                                    final objectives = (c['objectives'] as List?)
+                                            ?.map((o) => o.toString())
+                                            .toList() ??
+                                        [];
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            lesson,
+                                            style: theme.textTheme.bodyLarge
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          ...objectives.map((o) => Text('• $o')),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            ),
+                          ),
 
                         const SizedBox(height: 24),
 
