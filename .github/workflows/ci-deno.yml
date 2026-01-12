@@ -17,3 +17,35 @@ jobs:
           deno-version: v1.x
       - name: Run all Deno tests
         run: deno test --unstable --allow-net --allow-env
+
+  flutter-tests:
+    name: Flutter tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run Flutter widget tests
+        run: flutter test --no-pub --coverage
+
+  deploy-supabase:
+    name: Deploy Supabase functions (on main only)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [deno-tests, flutter-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        run: curl -fsSL https://cli.supabase.com/install.sh | sh
+      - name: Supabase login
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase login $SUPABASE_ACCESS_TOKEN
+      - name: Deploy adaptive-quiz function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy adaptive-quiz --project-ref gohrxehnreohljgsxlig
