@@ -193,8 +193,9 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(quiz), { status: 200, headers: { 'content-type': 'application/json' } })
-  } catch (e) {
+  } catch (e: any) {
     console.error('adaptive-quiz error', e)
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'content-type': 'application/json' } })
+    const message = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e)
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers: { 'content-type': 'application/json' } })
   }
 })
