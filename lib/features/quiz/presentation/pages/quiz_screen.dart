@@ -479,47 +479,63 @@ class _QuizScreenState extends State<QuizScreen> {
                                   ...(_currentQuiz!['vocabulary'] as List)
                                       .cast<Map<String, dynamic>>()
                                       .map((v) {
-                                    final word = v['word'] ?? '';
-                                    final article = v['article'] ?? '';
-                                    final translation = v['translation'] ?? '';
-                                    final examplePresent = v['example_present'] ?? '';
-                                    final examplePast = v['example_past'] ?? '';
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                        final word = v['word'] ?? '';
+                                        final article = v['article'] ?? '';
+                                        final translation =
+                                            v['translation'] ?? '';
+                                        final examplePresent =
+                                            v['example_present'] ?? '';
+                                        final examplePast =
+                                            v['example_past'] ?? '';
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 12.0,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                '$article $word',
-                                                style: theme.textTheme.bodyLarge
-                                                    ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    '$article $word',
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    translation,
+                                                    style: theme
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          fontStyle:
+                                                              FontStyle.italic,
+                                                        ),
+                                                  ),
+                                                ],
                                               ),
-                                              Text(
-                                                translation,
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  fontStyle: FontStyle.italic,
+                                              const SizedBox(height: 6),
+                                              if (examplePresent != null &&
+                                                  examplePresent.isNotEmpty)
+                                                Text(
+                                                  'Present: $examplePresent',
                                                 ),
-                                              ),
+                                              if (examplePast != null &&
+                                                  examplePast.isNotEmpty)
+                                                Text('Past: $examplePast'),
                                             ],
                                           ),
-                                          const SizedBox(height: 6),
-                                          if (examplePresent != null && examplePresent.isNotEmpty)
-                                            Text('Present: $examplePresent'),
-                                          if (examplePast != null && examplePast.isNotEmpty)
-                                            Text('Past: $examplePast'),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
+                                        );
+                                      })
+                                      .toList(),
                                 ],
                               ),
                             ),
@@ -546,31 +562,37 @@ class _QuizScreenState extends State<QuizScreen> {
                                   ...(_currentQuiz!['curriculum'] as List)
                                       .cast<Map<String, dynamic>>()
                                       .map((c) {
-                                    final lesson = c['lesson'] ?? '';
-                                    final objectives = (c['objectives'] as List?)
-                                            ?.map((o) => o.toString())
-                                            .toList() ??
-                                        [];
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            lesson,
-                                            style: theme.textTheme.bodyLarge
-                                                ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                        final lesson = c['lesson'] ?? '';
+                                        final objectives =
+                                            (c['objectives'] as List?)
+                                                ?.map((o) => o.toString())
+                                                .toList() ??
+                                            [];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 12.0,
                                           ),
-                                          const SizedBox(height: 6),
-                                          ...objectives.map((o) => Text('• $o')),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                lesson,
+                                                style: theme.textTheme.bodyLarge
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              ...objectives.map(
+                                                (o) => Text('• $o'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      })
+                                      .toList(),
                                 ],
                               ),
                             ),

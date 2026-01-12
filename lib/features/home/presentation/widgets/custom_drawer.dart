@@ -294,6 +294,8 @@ class CustomDrawer extends ConsumerWidget {
             contentPadding: const EdgeInsets.only(left: 72, right: 16),
             title: Text(
               topic,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: isSelected
                     ? const Color(0xFFD4AF37)
