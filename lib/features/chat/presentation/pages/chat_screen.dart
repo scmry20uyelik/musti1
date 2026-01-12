@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,8 +84,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     try {
       final response = await _aiService.sendMessage(
         userMessage,
-        topic: selectedTopic != null ? selectedTopic.topicTitle : null,
-        userLevel: selectedTopic != null ? selectedTopic.level : null,
+        topic: selectedTopic?.topicTitle,
+        userLevel: selectedTopic?.level,
         conversationHistory: _messages
             .map((m) => {'role': m['role']!, 'content': m['content']!})
             .toList(),
@@ -113,13 +112,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       });
 
       // Show error snackbar with auto-dismiss
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Hata: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 
@@ -195,7 +196,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 selectedTopic.topicTitle,
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
           ],
@@ -218,7 +219,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         Icon(
                           Icons.chat_bubble_outline,
                           size: 80,
-                          color: theme.colorScheme.primary.withOpacity(0.3),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -235,7 +238,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                         ),
                       ],
@@ -274,7 +279,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     (isUser
                                             ? theme.colorScheme.secondary
                                             : theme.colorScheme.primary)
-                                        .withOpacity(0.15),
+                                        .withValues(alpha: 0.15),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -302,9 +307,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                       Icons.more_vert,
                                       size: 20,
                                       color: isUser
-                                          ? Colors.white.withOpacity(0.9)
+                                          ? Colors.white.withValues(alpha: 0.9)
                                           : theme.colorScheme.onSurface
-                                                .withOpacity(0.7),
+                                                .withValues(alpha: 0.7),
                                     ),
                                     padding: EdgeInsets.zero,
                                     splashRadius: 20,
@@ -398,7 +403,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     'AI yanıt hazırlıyor...',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -412,7 +417,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               color: theme.colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -429,7 +434,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         hintText: 'Mesajınızı yazın...',
                         hintStyle: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: theme.colorScheme.onSurface.withOpacity(0.4),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.4,
+                          ),
                         ),
                         filled: true,
                         fillColor: theme.scaffoldBackgroundColor,
@@ -462,7 +469,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.secondary.withOpacity(0.4),
+                          color: theme.colorScheme.secondary.withValues(
+                            alpha: 0.4,
+                          ),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),

@@ -73,6 +73,8 @@ supabase functions deploy gemini-chat
 ```
 Deployed Function gemini-chat version 1.0.0
 Function URL: https://gohrxehnreohljgsxlig.supabase.co/functions/v1/gemini-chat
+
+Add: Adaptive Quiz function URL (pending deploy): https://gohrxehnreohljgsxlig.supabase.co/functions/v1/adaptive-quiz
 ```
 
 ---

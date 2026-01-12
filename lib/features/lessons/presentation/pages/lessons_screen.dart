@@ -67,7 +67,7 @@ class LessonsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -90,8 +90,8 @@ class LessonsScreen extends ConsumerWidget {
                     child: LinearProgressIndicator(
                       value: 0.66, // 10/15
                       minHeight: 8,
-                      backgroundColor: theme.colorScheme.primary.withOpacity(
-                        0.2,
+                      backgroundColor: theme.colorScheme.primary.withValues(
+                        alpha: 0.2,
                       ),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         theme.colorScheme.secondary,
@@ -103,7 +103,7 @@ class LessonsScreen extends ConsumerWidget {
                     '10/15 Tamamlandı',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -186,7 +186,7 @@ class LessonsScreen extends ConsumerWidget {
                 color: theme.colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
@@ -255,7 +255,7 @@ class _CategoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -275,7 +275,7 @@ class _CategoryCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: color, size: 28),
@@ -320,7 +320,9 @@ class _CategoryCard extends StatelessWidget {
                         progress,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                     ],

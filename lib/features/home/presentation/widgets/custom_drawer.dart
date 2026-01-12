@@ -310,6 +310,7 @@ class CustomDrawer extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.7),
                   tooltip: 'Test',
                   onPressed: () {
+                    debugPrint('🔔 Drawer Test pressed: level=$level topic=$topic');
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) =>

@@ -235,7 +235,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withOpacity(0.3),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -258,7 +258,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -282,7 +282,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withOpacity(0.4),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -364,7 +364,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                                     : percentage >= 50
                                     ? Colors.orange
                                     : Colors.red)
-                                .withOpacity(0.4),
+                                .withValues(alpha: 0.4),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -397,7 +397,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -418,7 +418,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                         'Doğru Cevap',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -427,8 +429,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                         child: LinearProgressIndicator(
                           value: _correctAnswers / _totalQuestions,
                           minHeight: 12,
-                          backgroundColor: theme.colorScheme.primary
-                              .withOpacity(0.2),
+                          backgroundColor: theme.colorScheme.primary.withValues(
+                            alpha: 0.2,
+                          ),
                           valueColor: AlwaysStoppedAnimation<Color>(
                             percentage >= 70
                                 ? Colors.green
@@ -469,7 +472,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: theme.colorScheme.primary.withOpacity(0.4),
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.4,
+                            ),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
@@ -562,7 +567,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
               child: LinearProgressIndicator(
                 value: (_currentQuestionIndex + 1) / _totalQuestions,
                 minHeight: 8,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.2,
+                ),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   theme.colorScheme.primary,
                 ),
@@ -578,7 +585,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -628,7 +635,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -654,7 +661,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.4),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -690,8 +697,8 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                   color:
                       _normalizeText(_userAnswer) ==
                           _normalizeText(_correctAnswer)
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color:
@@ -739,7 +746,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                         'Senin cevabın:',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                       Text(
@@ -756,7 +765,9 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                       'Doğru cevap:',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                     Text(
@@ -782,7 +793,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.4),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -817,7 +828,7 @@ class _VocabularyQuizScreenState extends State<VocabularyQuizScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

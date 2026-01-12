@@ -32,6 +32,7 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('➡️ QuizScreen opened for level=${widget.levelName}, topic=${widget.topicName}');
     _loadQuiz();
   }
 
@@ -67,9 +68,15 @@ class _QuizScreenState extends State<QuizScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Hata: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Soru yüklenemedi: ${e.toString()}'),
+            action: SnackBarAction(
+              label: 'Tekrar Dene',
+              onPressed: () => _loadQuiz(),
+            ),
+          ),
+        );
       }
     }
   }
@@ -134,7 +141,7 @@ class _QuizScreenState extends State<QuizScreen> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: theme.colorScheme.secondary.withOpacity(0.15),
+              color: theme.colorScheme.secondary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -247,7 +254,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
                                       color: theme.colorScheme.primaryContainer
-                                          .withOpacity(0.3),
+                                          .withValues(alpha: 0.3),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -392,7 +399,9 @@ class _QuizScreenState extends State<QuizScreen> {
                                                       color: theme
                                                           .colorScheme
                                                           .primaryContainer
-                                                          .withOpacity(0.3),
+                                                          .withValues(
+                                                            alpha: 0.3,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             8,
@@ -430,13 +439,13 @@ class _QuizScreenState extends State<QuizScreen> {
                                           Icons.translate,
                                           size: 20,
                                           color: theme.colorScheme.primary
-                                              .withOpacity(0.7),
+                                              .withValues(alpha: 0.7),
                                         ),
                                         style: IconButton.styleFrom(
                                           backgroundColor: theme
                                               .colorScheme
                                               .primaryContainer
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                           padding: const EdgeInsets.all(8),
                                         ),
                                       ),
@@ -455,8 +464,8 @@ class _QuizScreenState extends State<QuizScreen> {
                             color:
                                 _selectedAnswer ==
                                     _currentQuiz!['correct_answer']
-                                ? Colors.green[900]!.withOpacity(0.3)
-                                : Colors.red[900]!.withOpacity(0.3),
+                                ? Colors.green[900]!.withValues(alpha: 0.3)
+                                : Colors.red[900]!.withValues(alpha: 0.3),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -513,7 +522,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     color: theme.colorScheme.surface,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, -2),
                       ),

@@ -64,7 +64,7 @@ class WelcomeScreen extends StatelessWidget {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 36,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                       letterSpacing: 4,
                     ),
                   ),
@@ -79,7 +79,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: const Color(0xFFD4AF37).withOpacity(0.3),
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -89,7 +89,9 @@ class WelcomeScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                         letterSpacing: 2,
                       ),
                     ),
@@ -112,7 +114,9 @@ class WelcomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFD4824A).withOpacity(0.4),
+                            color: const Color(
+                              0xFFD4824A,
+                            ).withValues(alpha: 0.4),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
                           ),
@@ -161,7 +165,7 @@ class GoldenSparklesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.1)
+      ..color = const Color(0xFFD4AF37).withValues(alpha: 0.1)
       ..style = PaintingStyle.fill;
 
     // Rastgele parıltılar

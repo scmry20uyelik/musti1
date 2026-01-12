@@ -58,7 +58,7 @@ class AppTheme {
           backgroundColor: accentColor,
           foregroundColor: onPrimaryColor,
           elevation: 4,
-          shadowColor: accentColor.withOpacity(0.4),
+          shadowColor: accentColor.withValues(alpha: 0.4),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
@@ -103,7 +103,7 @@ class AppTheme {
       // Card Theme - Premium cards
       cardTheme: CardThemeData(
         elevation: 3,
-        shadowColor: primaryColor.withOpacity(0.15),
+        shadowColor: primaryColor.withValues(alpha: 0.15),
         color: surfaceColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),

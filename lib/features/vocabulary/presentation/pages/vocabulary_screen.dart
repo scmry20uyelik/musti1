@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/network/ai_api_service.dart';
 import '../../../../core/network/connectivity_service.dart';
@@ -30,10 +31,20 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
   final _aiService = AiApiService.instance;
   final _rateLimiter = RateLimiter(cooldown: const Duration(seconds: 3));
 
+  Timer? _searchDebounce;
+
   @override
   void initState() {
     super.initState();
     _loadVocabulary();
+  }
+
+  @override
+  void dispose() {
+    _wordController.dispose();
+    _searchController.dispose();
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadVocabulary() async {
@@ -182,8 +193,25 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
         // Cache'te yok, API'ye git
         try {
           enrichedData = await _aiService.enrichVocabulary(word);
+
+          // Eğer API beklenen veriyi dönmediyse geri dön
+          if (enrichedData['word'] == null) {
+            setState(() => _isLoading = false);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Kelime zenginleştirilemedi. Lütfen manuel ekleyin.',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+            return;
+          }
+
           debugPrint(
-            '✅ Edge Function (Gemini)\'den alındı: ${enrichedData['turkish']}',
+            '✅ Edge Function (Gemini)\'den alındı: ${enrichedData['turkish'] ?? '(çeviri yok)'}',
           );
 
           // Cache'e kaydet
@@ -250,12 +278,6 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
         }
       }
 
-      // enrichedData null check
-      if (enrichedData == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
       // Kelime zaten var mı kontrol et
       final enrichedWord = (enrichedData['word'] as String).toLowerCase();
       final existingIndex = _vocabulary.indexWhere(
@@ -307,6 +329,26 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
       });
 
       await _saveVocabulary();
+
+      // Eğer Türkçe çeviri yoksa, arka planda kısa bir çeviri talep et
+      final newIndex = 0; // en başa ekledik
+      if ((enrichedData['turkish'] == null ||
+              (enrichedData['turkish'] as String).trim().isEmpty) &&
+          mounted) {
+        _aiService
+            .sendMessage('Kısa ve yalnızca çeviri ver: "$word" → Türkçe.')
+            .then((res) async {
+              if (!mounted) return;
+              setState(() {
+                _vocabulary[newIndex]['turkish'] = res.trim();
+              });
+              await _saveVocabulary();
+            })
+            .catchError((e) {
+              debugPrint('Çeviri alınamadı: $e');
+              return null;
+            });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -376,10 +418,10 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
               border: Border(
                 bottom: BorderSide(
-                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -434,7 +476,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                 Text(
                   'AI otomatik olarak artikel ve örnek cümleler ekleyecek',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -459,7 +501,13 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                       fillColor: theme.colorScheme.surface,
                     ),
                     onChanged: (value) {
-                      setState(() => _searchQuery = value);
+                      _searchDebounce?.cancel();
+                      _searchDebounce = Timer(
+                        const Duration(milliseconds: 300),
+                        () {
+                          setState(() => _searchQuery = value);
+                        },
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
@@ -527,7 +575,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -580,7 +628,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                           border: Border(
                             top: BorderSide(
                               color: theme.colorScheme.outlineVariant
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                         ),
@@ -608,8 +656,8 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withOpacity(
-                              0.3,
+                            color: theme.colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
                             ),
                           ),
                         ),
@@ -663,7 +711,9 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                         Icon(
                           Icons.book_outlined,
                           size: 100,
-                          color: theme.colorScheme.primary.withOpacity(0.3),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -677,7 +727,9 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                         Text(
                           'Almanca bir kelime yazıp + butonuna basarak başlayın',
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -707,7 +759,9 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                         Icon(
                           Icons.search_off,
                           size: 80,
-                          color: theme.colorScheme.primary.withOpacity(0.3),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -720,7 +774,9 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                         Text(
                           'Farklı bir arama yapın',
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ],
@@ -784,11 +840,11 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color: theme.colorScheme.primary
-                                            .withOpacity(0.05),
+                                            .withValues(alpha: 0.05),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
                                           color: theme.colorScheme.primary
-                                              .withOpacity(0.2),
+                                              .withValues(alpha: 0.2),
                                         ),
                                       ),
                                       child: Column(
@@ -838,13 +894,15 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: Colors.green.withOpacity(0.05),
+                                          color: Colors.green.withValues(
+                                            alpha: 0.05,
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
                                           border: Border.all(
-                                            color: Colors.green.withOpacity(
-                                              0.2,
+                                            color: Colors.green.withValues(
+                                              alpha: 0.2,
                                             ),
                                           ),
                                         ),
@@ -915,7 +973,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                                     'Eklenme: ${_formatDate(item['addedAt'] ?? '')}',
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurface
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ],
@@ -1042,11 +1100,5 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _wordController.dispose();
-    super.dispose();
   }
 }

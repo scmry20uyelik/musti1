@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../errors/exceptions.dart';
 
 /// AI API Service (via Supabase Edge Functions)
 /// API key güvenli şekilde backend'de saklanır
 class AiApiService {
+  // This field is intentionally kept for future use (conversation history)
+  // ignore: unused_field
   List<Map<String, dynamic>> _conversationHistory = [];
   String? _currentUserLevel;
   String? _currentTopic;
@@ -135,46 +138,207 @@ class AiApiService {
   bool get hasActiveConversation =>
       _currentUserLevel != null && _currentTopic != null;
 
-  /// Get adaptive quiz from Edge Function
+  /// Get adaptive quiz from Edge Function (expects Gemini-based JSON schema)
   Future<Map<String, dynamic>> getAdaptiveQuiz(
     String topic,
     String level,
   ) async {
     try {
-      // Direct HTTP call instead of Supabase SDK (no session check needed)
-      const anonKey =
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvaHJ4ZWhucmVvaGxqZ3N4bGlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NjM2MDQsImV4cCI6MjA4MzUzOTYwNH0.OrIQIoxV2-9jUK2fNvv-scTuejetftm1RISB1bEZwl4';
-      const url =
-          'https://gohrxehnreohljgsxlig.supabase.co/functions/v1/adaptive-quiz';
+      const url = 'https://gohrxehnreohljgsxlig.supabase.co/functions/v1/adaptive-quiz';
 
-      final httpResponse = await http
-          .post(
-            Uri.parse(url),
-            headers: {
-              'Authorization': 'Bearer $anonKey',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({'topic': topic, 'level': level}),
-          )
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () {
-              throw ApiException(
-                'Sunucu yanıt vermiyor. Lütfen tekrar deneyin.',
+      // Retry with exponential backoff + jitter on transient failures (5xx/timeouts)
+      http.Response? httpResponse;
+      const int maxAttempts = 5;
+      final rng = Random();
+
+      for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        debugPrint('🔁 adaptive-quiz attempt $attempt/$maxAttempts for level=$level topic=$topic');
+        try {
+          httpResponse = await http
+              .post(
+                Uri.parse(url),
+                headers: {
+                  // Authorization header removed — use Supabase secrets for deployed functions.
+                  'Content-Type': 'application/json',
+                },
+                body: jsonEncode({'topic': topic, 'level': level}),
+              )
+              .timeout(
+                const Duration(seconds: 30),
+                onTimeout: () {
+                  throw ApiException('Sunucu yanıt vermiyor. Lütfen tekrar deneyin.');
+                },
               );
-            },
-          );
+        } catch (e) {
+          debugPrint('❌ adaptive-quiz attempt $attempt exception: $e');
+          if (attempt == maxAttempts) {
+            debugPrint('⚠️ adaptive-quiz: max attempts reached after exception, returning fallback quiz');
+            return {
+              'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
+              'options': ['A', 'B', 'C', 'D'],
+              'correct_answer': 'A',
+              'options_turkish': ['A', 'B', 'C', 'D'],
+              'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+              'difficulty': 'medium',
+            };
+          }
+          final backoffMs = (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
+          debugPrint('⏳ Backing off for ${backoffMs}ms before retry');
+          await Future.delayed(Duration(milliseconds: backoffMs));
+          continue;
+        }
 
-      if (httpResponse.statusCode == 401) {
-        throw ApiException('Oturum süresi dolmuş. Lütfen yeniden giriş yapın.');
+        debugPrint('🔍 Response status: ${httpResponse.statusCode}');
+
+        if (httpResponse.statusCode == 200) break;
+
+        // If server error (5xx) then retry after backoff
+        if (httpResponse.statusCode >= 500 && httpResponse.statusCode < 600) {
+          debugPrint('⚠️ Server error ${httpResponse.statusCode} - ${httpResponse.body}');
+          if (attempt == maxAttempts) {
+            debugPrint('⚠️ adaptive-quiz: max attempts reached, returning fallback quiz');
+            return {
+              'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
+              'options': ['A', 'B', 'C', 'D'],
+              'correct_answer': 'A',
+              'options_turkish': ['A', 'B', 'C', 'D'],
+              'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+              'difficulty': 'medium',
+            };
+          }
+          final backoffMs = (300 * pow(2, attempt - 1)).toInt() + rng.nextInt(200);
+          debugPrint('⏳ Backing off for ${backoffMs}ms before retry');
+          await Future.delayed(Duration(milliseconds: backoffMs));
+          continue;
+        }
+
+        // Non-retriable errors
+        if (httpResponse.statusCode == 401) {
+          throw ApiException('Oturum süresi dolmuş. Lütfen yeniden giriş yapın.');
+        }
+
+        throw ApiException('Sunucu hatası: ${httpResponse.statusCode} - ${httpResponse.body}');
+      }
+
+      if (httpResponse == null) {
+        debugPrint('⚠️ adaptive-quiz: httpResponse null — returning fallback quiz');
+        return {
+          'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
+          'options': ['A', 'B', 'C', 'D'],
+          'correct_answer': 'A',
+          'options_turkish': ['A', 'B', 'C', 'D'],
+          'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+          'difficulty': 'medium',
+        };
       }
 
       if (httpResponse.statusCode != 200) {
+        // If server-side issue, return a safe fallback quiz instead of failing the whole flow
+        if (httpResponse.statusCode >= 500 && httpResponse.statusCode < 600) {
+          debugPrint('⚠️ adaptive-quiz: server error ${httpResponse.statusCode} — returning fallback quiz');
+          return {
+            'question': 'Sunucu şu anda kullanılamıyor — örnek soru',
+            'options': ['A', 'B', 'C', 'D'],
+            'correct_answer': 'A',
+            'options_turkish': ['A', 'B', 'C', 'D'],
+            'question_turkish': 'Sunucu şu anda kullanılamıyor. Bu örnek bir sorudur.',
+            'difficulty': 'medium',
+          };
+        }
+
         throw ApiException('Sunucu hatası: ${httpResponse.statusCode}');
       }
 
       final data = jsonDecode(httpResponse.body) as Map<String, dynamic>;
-      return data['quiz'] as Map<String, dynamic>;
+
+      // Support both legacy 'quiz' shape and new Gemini schema
+      if (data.containsKey('quiz') && data['quiz'] is Map<String, dynamic>) {
+        final quizRaw = data['quiz'] as Map<String, dynamic>;
+        final question = quizRaw['question'];
+        final options = quizRaw['options'];
+        final correct = quizRaw['correct_answer'];
+
+        if (question == null || options == null || correct == null) {
+          throw ApiException('Quiz verisi eksik.');
+        }
+
+        if (options is! List) {
+          throw ApiException('Quiz seçenekleri beklenenden farklı bir formatta.');
+        }
+
+        final normalizedOptions = options.map((e) => e.toString()).toList();
+
+        if (!normalizedOptions.contains(correct.toString())) {
+          throw ApiException('Quiz: doğru cevap seçenekler arasında değil.');
+        }
+
+        return {
+          'question': question.toString(),
+          'options': normalizedOptions,
+          'correct_answer': correct.toString(),
+          'options_turkish': (quizRaw['options_turkish'] as List?)?.map((e) => e.toString()).toList(),
+          'question_turkish': quizRaw['question_turkish'] as String?,
+          'difficulty': quizRaw['difficulty'] as String? ?? 'medium',
+        };
+      }
+
+      // New Gemini schema
+      if (data.containsKey('questions') && data['questions'] is List) {
+        final questions = data['questions'] as List;
+        if (questions.isEmpty) {
+          throw ApiException('Quiz soruları boş.');
+        }
+
+        final first = questions.first as Map<String, dynamic>;
+        final qText = first['question'] ?? first['text'] ?? first['prompt'];
+        List options = first['options'] as List? ?? [];
+        String? correctAnswer;
+
+        // options may be list of maps {id,text,correct}
+        if (options.isNotEmpty && options.first is Map<String, dynamic>) {
+          final opts = options.map((e) => e as Map<String, dynamic>).toList();
+          final correctOpt = opts.firstWhere(
+            (m) => m['correct'] == true,
+            orElse: () => <String, dynamic>{},
+          );
+          if (correctOpt.isNotEmpty) correctAnswer = correctOpt['id']?.toString() ?? correctOpt['text']?.toString();
+          final normalizedOptions = opts.map((m) => m['id']?.toString() ?? m['text']?.toString() ?? '').toList();
+
+          if (correctAnswer == null && opts.isNotEmpty) {
+            // fallback: if correct not marked, prefer first
+            correctAnswer = normalizedOptions.first;
+          }
+
+          return {
+            'question': qText.toString(),
+            'options': normalizedOptions,
+            'correct_answer': correctAnswer,
+            'options_turkish': null,
+            'question_turkish': null,
+            'difficulty': (first['difficulty']?.toString()) ?? 'medium',
+          };
+        }
+
+        // options may be simple list of strings
+        if (options.isNotEmpty && options.first is String) {
+          final opts = options.map((e) => e.toString()).toList();
+          correctAnswer = first['correct']?.toString() ?? opts.first;
+          if (!opts.contains(correctAnswer)) correctAnswer = opts.first;
+
+          return {
+            'question': qText.toString(),
+            'options': opts,
+            'correct_answer': correctAnswer,
+            'options_turkish': null,
+            'question_turkish': null,
+            'difficulty': (first['difficulty']?.toString()) ?? 'medium',
+          };
+        }
+
+        throw ApiException('Quiz seçenekleri beklenenden farklı formatta.');
+      }
+
+      throw ApiException('Quiz formatı beklenenden farklı.');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Quiz yüklenemedi: ${e.toString()}');
@@ -258,7 +422,7 @@ class AiApiService {
     }
   }
 
-  /// Enrich vocabulary word with Groq API
+  /// Enrich vocabulary word with Gemini API (migrated from Groq)
   /// Returns artikel and two example sentences
   Future<Map<String, String>> enrichVocabulary(String word) async {
     try {
