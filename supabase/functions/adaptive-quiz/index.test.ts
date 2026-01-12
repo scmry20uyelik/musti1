@@ -56,11 +56,9 @@ Deno.test('ensureQuizCompleteness fixes missing vocabulary and curriculum fields
     ]
   })
 
-  // Monkeypatch callGemini
+  // Use dependency injection to provide a mocked callGemini
   const mod = await import('./index.ts')
-  mod.callGemini = async (_prompt: string) => ({ candidates: [{ content: [{ text: fixed }] }] })
-
-  const result = await mod.ensureQuizCompleteness(incomplete, 'A1.1', 'Artikel')
+  const result = await mod.ensureQuizCompleteness(incomplete, 'A1.1', 'Artikel', async (_prompt: string) => ({ candidates: [{ content: [{ text: fixed }] }] }))
   if (!result || !Array.isArray(result.vocabulary) || !result.vocabulary[0].article) throw new Error('Vocabulary not fixed')
   if (!Array.isArray(result.curriculum) || result.curriculum.length < 3) throw new Error('Curriculum not fixed')
 })

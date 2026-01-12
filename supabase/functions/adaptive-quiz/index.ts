@@ -69,7 +69,7 @@ export function parseQuizFromContent(content: string) {
 }
 
 // Validate quiz object and attempt to fix missing vocabulary/article/examples/curriculum
-export async function ensureQuizCompleteness(quiz: any, level: string, topic: string) {
+export async function ensureQuizCompleteness(quiz: any, level: string, topic: string, callGeminiFn: (prompt: string) => Promise<any> = callGemini) {
   const validArticles = ['der', 'die', 'das']
 
   const isVocabularyValid = (v: any) => {
@@ -88,7 +88,7 @@ export async function ensureQuizCompleteness(quiz: any, level: string, topic: st
 ${JSON.stringify(quiz)}`
 
   try {
-    const resp = await callGemini(fixPrompt)
+    const resp = await callGeminiFn(fixPrompt)
     const content = resp?.candidates?.[0]?.content?.[0]?.text || resp?.candidates?.[0]?.output || JSON.stringify(resp)
     const parsed = parseQuizFromContent(content)
     if (parsed) {
